@@ -7,7 +7,11 @@ for i in range(2, 10):
             print(i, 'equals', n, '*', i//n)
             break
         else:
-            print(n)
+            print(i, 'can\'t be divided by', n)
     else:
         print(i, 'is a prime number')
+
+# request
+
+response = request.get('43.136.134.205:8080/all')
 
