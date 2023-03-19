@@ -7,7 +7,6 @@ if [ -z "$OPENAI_KEY" ]; then
     exit 1
 fi
 
-echo "YOUR KEY IS: $OPENAI_KEY"
 # enter ther image description
 read -p  "Enter your image description: " prompt && echo $prompt | tee -a $log
 while [ `expr length "$prompt"` -lt 5 ]
