@@ -15,6 +15,8 @@ def prime(p):
 
 prime(100)
 
+print("request start")
+
 # request
 url = "https://raw.fastgit.org/freefq/free/master/v2"
 headers = {
@@ -35,7 +37,12 @@ headers = {
 }
 response = requests.get(url)
 
+print("hell:" + response)
+
 import base64
 import json
+import os
+
+os.environ
 
 base64.decode()
