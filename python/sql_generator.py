@@ -6,4 +6,6 @@ def generateSql(start, end, template):
     for i in range(start, end):
         print(template.format(str(i).zfill(2)))
 
-generateSql(0, 100, "hello {}")
+sql_tpl = "hello {}"
+
+generateSql(0, 100, sql_tpl)
