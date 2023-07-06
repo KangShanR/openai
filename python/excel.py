@@ -1,11 +1,4 @@
-import requests
-import base64
-import json
-import os
-# import excel package
 import xlrd
-
-# print("os.environ: " + str(os.environ))
 import pandas as pd
 
 # Read Excel file
