@@ -9,8 +9,19 @@ import xlrd
 import pandas as pd
 
 # Read Excel file
-df = pd.read_excel('~/Downloads/dict-adjust1.xlsx', engine='openpyxl')
+df = pd.read_excel('~/Downloads/dict-adjust2.xlsx', engine='openpyxl')
+
+template = '{}'
+columns = df['id']
+
+length = len(columns)
+print(f'columns length: {length}')
 
 # Print the contents of the DataFrame
-for value in df['dict_code']:
-    print('"{}"'.format(value), end=', ')
+for index in range(length):
+    if index == 0:
+        print('\n\n\n\n\n')
+    elif index != length - 1:
+        print(template.format(columns[index]), end=', ')
+    else:
+        print(template.format(columns[index]))
