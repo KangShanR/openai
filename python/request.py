@@ -40,7 +40,6 @@ response = requests.get(url)
 print("hell:" + response)
 
 import base64
-import json
 import os
 
 os.environ
