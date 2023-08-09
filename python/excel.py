@@ -1,4 +1,3 @@
-import xlrd
 import pandas as pd
 
 def compare_excel(excel1, excel2):
@@ -29,4 +28,33 @@ def compare_excel(excel1, excel2):
     print('remain store data:' + str(store_data))
 
 
-compare_excel('~/Downloads/bofc.xlsx', '~/Downloads/store.xlsx')
+
+# compare excel data cell by cell
+def compare_excel2(excel1, excel2):
+    # Read Excel file
+    df = pd.read_excel(excel1, engine='openpyxl')
+
+    data = list()
+
+    for index, row in df.iterrows():
+        value = str(row['biz_id']).split(',')
+        data.extend(value)
+
+    store = pd.read_excel(excel2, engine='openpyxl')
+    store_data = list()
+    for index, row in store.iterrows():
+        key = str(row['purchase_no'])
+        print(key)
+        store_data.append(key)
+    
+    print('------------')
+
+    for value in data:
+        if value in store_data:
+            print(str(value) +" existed ")
+        else:
+            print(str(value) + " not existed")
+
+
+
+compare_excel2('~/Downloads/msg.xlsx', '~/Downloads/bills.xlsx')
