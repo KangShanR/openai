@@ -1,5 +1,6 @@
 import os
 import mysql.connector
+from sqlalchemy import create_engine
 
 # 定义配置字典
 config = {
@@ -15,6 +16,13 @@ config = {
 
 # 创建连接池
 pool =mysql.connector.pooling.MySQLConnectionPool(**config)
+
+# 创建连接池 sqlalchemy
+engine = create_engine(
+    "mysql+mysqlconnector://{user}:{password}@{host}/{database}".format(**config),
+    pool_size=5,  # 连接池大小
+    pool_recycle=3600  # 连接回收时间（秒）
+)
 
 
 # 方法 1：查询多行数据
