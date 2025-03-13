@@ -1,4 +1,5 @@
 import tkinter as tk
+import re
 
 # 创建主窗口
 root = tk.Tk()
@@ -32,7 +33,22 @@ output_area.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")  # 让文本�
 # 创建一个按钮，点击按钮后可以获取用户输入的文本
 def get_input():
     user_input = input_area.get("1.0", tk.END)  # 获取输入框中的内容
-    processed_lines = [f"<tag>{line.strip()}</tag>" for line in user_input.splitlines() if line.strip()]
+    
+    # 处理每一行
+    processed_lines = []
+    for line in user_input.splitlines():
+        if not line.strip():
+            continue  # 跳过空行
+        
+        # 检查行尾是否有中文标点符号
+        if re.search(r'[。！？；，：）】》’”]$', line.strip()):
+            line = re.sub(r'^%', '', line)  # 删除行首 '%'
+            processed_line = f"<p class=\"calibre24\">{line.strip()}</p>"
+        else:
+            processed_line = f"<p class=\"calibre18\"><span class=\"calibre22\">{line.strip()}</span></p>"
+        
+        processed_lines.append(processed_line)
+    
     processed_text = "\n".join(processed_lines)  # 重新拼接文本
 
     # 显示处理后的文本
