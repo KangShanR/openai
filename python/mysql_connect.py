@@ -4,8 +4,10 @@ from sqlalchemy import create_engine
 
 # 定义配置字典
 config = {
-    'user': os.getenv('DB_USER'),
-    'password': os.getenv('DB_PASSWORD'),
+    'user': 'jfk',
+    'password': "12345678k",
+    # 'user': os.getenv('DB_USER'),
+    # 'password': os.getenv('DB_PASSWORD'),
     'host':'localhost',
     'database': 'testdb',
     'raise_on_warnings': True,

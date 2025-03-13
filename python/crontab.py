@@ -1,5 +1,5 @@
 import datetime
-from mysql_connect import query_datas, engine
+from mysql_connect import engine
 import pandas as pd
 
 
@@ -8,13 +8,14 @@ import pandas as pd
 
 rows = pd.read_sql("select * from crontab where data_state = \"VALID\";", engine)
 for row in rows:
-    if(row[1] == "DAILY"):
+    if(row['cron_type'] == "DAILY"):
+        today_str = datetime.date.today().strftime("%Y-%m-%d %H:%M:%S")
         logs =pd.read_sql("""
                             select * from cron_log where `name` = %s and data_state = \"VALID\" 
                             AND task_result = \"SUCCESS\" AND created_at >= %s
                         """,
                         engine,
-                        params=(row[2],datetime.date.today().strftime("%Y-%m-%d %H:%M:%S")))
-        for log in logs:
-            print(log)
+                        params=(row['name'], today_str))
+        if logs.size() == 0:
+            print("There is no {} task excuted in {}".format(row['name'], today_str))
 
