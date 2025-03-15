@@ -1,35 +1,6 @@
 import tkinter as tk
 import re
 
-# 创建主窗口
-root = tk.Tk()
-root.title("文本处理")
-
-# 设置窗口大小
-root.geometry("1200x900")
-
-# 让窗口的行列可伸缩
-root.columnconfigure(0, weight=1)
-root.rowconfigure(0, weight=1)
-
-# 创建框架
-frame = tk.Frame(root)
-frame.grid(row=0, column=0, sticky="nsew")  # 让框架填充整个窗口
-
-# 让框架的列可以伸缩
-frame.columnconfigure(0, weight=1)
-frame.columnconfigure(1, weight=1)
-frame.rowconfigure(0, weight=1)
-
-
-# 创建输入框（左侧）
-input_area = tk.Text(frame, wrap=tk.WORD)
-input_area.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")  # 让文本框填充空间
-
-# 创建输出框（右侧）
-output_area = tk.Text(frame, wrap=tk.WORD, state=tk.DISABLED)
-output_area.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")  # 让文本框填充空间
-
 # 创建一个按钮，点击按钮后可以获取用户输入的文本
 def get_input():
     user_input = input_area.get("1.0", tk.END)  # 获取输入框中的内容
@@ -64,6 +35,42 @@ def get_input():
 
     # 提示用户
     status_label.config(text="✅ 处理后的文本已复制到剪贴板！", fg="green")
+
+def on_text_change(event=None):
+    """当用户输入新文本时，更新 Label 颜色"""
+    status_label.config(text="⚠️ 新文本", fg="orange")
+
+# 创建主窗口
+root = tk.Tk()
+root.title("文本处理")
+
+# 设置窗口大小
+root.geometry("1200x900")
+
+# 让窗口的行列可伸缩
+root.columnconfigure(0, weight=1)
+root.rowconfigure(0, weight=1)
+
+# 创建框架
+frame = tk.Frame(root)
+frame.grid(row=0, column=0, sticky="nsew")  # 让框架填充整个窗口
+
+# 让框架的列可以伸缩
+frame.columnconfigure(0, weight=1)
+frame.columnconfigure(1, weight=1)
+frame.rowconfigure(0, weight=1)
+
+
+# 创建输入框（左侧）
+input_area = tk.Text(frame, wrap=tk.WORD)
+input_area.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")  # 让文本框填充空间
+input_area.bind("<KeyRelease>", on_text_change)  # 监听输入变化
+
+# 创建输出框（右侧）
+output_area = tk.Text(frame, wrap=tk.WORD, state=tk.DISABLED)
+output_area.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")  # 让文本框填充空间
+
+
 
 # 创建按钮并放在新的一行
 button = tk.Button(root, text="处理输入", command=get_input)
