@@ -4,14 +4,14 @@ WORKDIR /app
 
 # 系統級依賴（CA證書等）
 RUN apt update && \
-    apt install -y --no-install-recommends ca-certificates && \
+    apt install -y --no-install-recommends ca-certificates build-essential \
+    libportaudio2 portaudio19-dev && \
     update-ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
 # 假設你的 requirements.txt 只有 transformers, accelerate, sounddevice, webrtcvad
-RUN pip install --no-cache-dir \
-    "torch+cpu" -f https://download.pytorch.org/whl/torch_stable.html && \
-    pip install --no-cache-dir \
+RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
+    pip install \
     numpy \
     transformers \
     accelerate \
