@@ -16,7 +16,7 @@ RUN pip install --upgrade pip
 RUN pip install numpy
 RUN pip install torch==2.1.0 --index-url https://download.pytorch.org/whl/cpu
 RUN pip install git+https://github.com/openai/whisper.git
-RUN pip install sounddevice webrtcvad numpy
+RUN pip install sounddevice webrtcvad
 RUN pip install soundfile
 
 # 创建目录用于挂载音频文件

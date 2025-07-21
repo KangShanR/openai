@@ -7,7 +7,7 @@ from vad_utils import VADAudio
 model = whisper.load_model("base")
 vad_audio = VADAudio()
 
-print("✅ 正在监听，请说话...")
+print("✅ 正在监听，请说话......")
 
 buffer = b''
 for frame in vad_audio.vad_collector():
