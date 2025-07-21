@@ -1,10 +1,14 @@
 import sounddevice as sd
 import webrtcvad
 import numpy as np
-from transformers import pipeline
+# from transformers import pipeline # 移除此行
+from transformers import WhisperProcessor, WhisperForConditionalGeneration # 新增導入
+    
 import collections
 import torch
 import sys
+import time # 新增導入 time
+
 
 # --- 配置參數 ---
 # ReSpeaker Mic Array 參數
@@ -18,20 +22,35 @@ VAD_MODE = 3  # VAD 模式：0 (積極), 1 (普通), 2 (溫和), 3 (最溫和)
 MIN_SPEECH_FRAMES = 8 # 8 * 30ms = 240ms 的語音
 
 # Whisper 參數
-WHISPER_MODEL = "openai/whisper-tiny" # 或 "openai/whisper-base", "openai/whisper-small" 等
+WHISPER_MODEL = "openai/whisper-tiny.en" # 或 "openai/whisper-base", "openai/whisper-small" 等
 # 你可能需要指定語言以提高準確性，例如： "zh" 表示中文
-WHISPER_LANGUAGE = "zh"
+WHISPER_LANGUAGE = "en"
 
 # 音頻緩衝區大小 (決定一次性處理多長的音頻進行 Whisper 識別)
 # 例如：收集最多 10 秒的音頻進行識別
 MAX_AUDIO_BUFFER_SECONDS = 10
 MAX_AUDIO_BUFFER_SAMPLES = SAMPLE_RATE * MAX_AUDIO_BUFFER_SECONDS
 
+# 全局變量用於緩衝音頻
+frames_buffer = collections.deque() # 不再限制 maxlen，交由後續邏輯控制
+voiced_frames_count = 0
+current_speech_audio = []
+# 新增 VAD 相關狀態變量
+in_speech_segment = False # 是否處於語音片段中
+silence_frames_after_speech = 0 # 語音結束後連續的靜音幀數
+SILENCE_THRESHOLD_FRAMES = int(0.5 * SAMPLE_RATE / CHUNK_SIZE) # 靜音閾值，例如 0.5 秒的靜音
+
+
 # --- 初始化 VAD 和 Whisper ---
 vad = webrtcvad.Vad(VAD_MODE)
 print(f"Loading Whisper model: {WHISPER_MODEL}...")
 # 為了支持實時處理，通常使用 "automatic-speech-recognition" pipeline
-asr_pipeline = pipeline("automatic-speech-recognition", model=WHISPER_MODEL, device=0 if torch.cuda.is_available() else -1)
+# asr_pipeline = pipeline("automatic-speech-recognition", model=WHISPER_MODEL, device=0 if torch.cuda.is_available() else -1)
+# 直接載入處理器和模型
+processor = WhisperProcessor.from_pretrained(WHISPER_MODEL)
+model = WhisperForConditionalGeneration.from_pretrained(WHISPER_MODEL)
+device = "cpu"
+model.to(device)
 print("Whisper model loaded.")
 
 # --- 音頻輸入設備查找 (ReSpeaker) ---
@@ -54,11 +73,12 @@ if input_device_id is None:
     sys.exit(1)
 
 # --- 主音頻流處理函數 ---
-def audio_callback(indata, frames, time, status):
+def audio_callback(indata, frames, time_info, status): # 將 time 改為 time_info 避免與 time 模塊衝突
     """
     Sounddevice 回調函數，當有新的音頻數據時被調用。
     """
-    global frames_buffer, voiced_frames_count, current_speech_audio
+    global voiced_frames_count, current_speech_audio, in_speech_segment, silence_frames_after_speech
+
     if status:
         print(status, file=sys.stderr)
 
@@ -69,27 +89,31 @@ def audio_callback(indata, frames, time, status):
     is_speech = vad.is_speech(pcm_data, SAMPLE_RATE)
 
     if is_speech:
-        voiced_frames_count += 1
+        silence_frames_after_speech = 0 # 重置靜音計數
         current_speech_audio.append(pcm_data)
-        print("Voice detected!")
-    else:
-        voiced_frames_count = 0 # 重置語音計數
-
-    # 如果語音活動達到閾值，開始收集語音片段
-    if voiced_frames_count >= MIN_SPEECH_FRAMES:
-        # 當檢測到語音活動時，將當前音頻幀添加到緩衝區
-        # 這裡的邏輯是，只要持續有語音，就持續添加到 current_speech_audio
-        pass # 數據已經在 `current_speech_audio` 中追加了
-
-    # 如果有語音數據，且緩衝區超過一定大小，或者靜音了一段時間，則處理
-    # 這個邏輯需要更精細地控制語音片段的開始和結束
-    # 更常見的實時 VAD 實現是使用一個小的滑動窗口來判斷語音的開始和結束
-    # 這裡我們簡化處理：只要有語音，就追加；如果靜音，且 current_speech_audio 有內容，就處理
-    if not is_speech and len(current_speech_audio) > 0:
-        # 靜音且有積累的語音數據，則進行語音識別
-        process_current_speech_segment()
-        current_speech_audio.clear() # 清空已處理的語音片段
-        voiced_frames_count = 0
+        if not in_speech_segment:
+            voiced_frames_count += 1
+            if voiced_frames_count >= MIN_SPEECH_FRAMES:
+                in_speech_segment = True
+                print("\n--- Speech Start Detected ---")
+        # else: continue appending
+    else: # is_speech is False (靜音)
+        if in_speech_segment:
+            # 處於語音片段中，但現在是靜音，開始計數靜音幀
+            silence_frames_after_speech += 1
+            current_speech_audio.append(pcm_data) # 為了保留語音末尾的少量靜音，方便識別
+            if silence_frames_after_speech >= SILENCE_THRESHOLD_FRAMES:
+                # 靜音持續時間達到閾值，判斷語音片段結束
+                print("--- Speech End Detected (Silence Threshold Reached) ---")
+                process_current_speech_segment()
+                current_speech_audio.clear()
+                in_speech_segment = False
+                voiced_frames_count = 0
+                silence_frames_after_speech = 0 # 重置所有狀態
+        else:
+            # 不在語音片段中，且當前是靜音，重置語音計數
+            voiced_frames_count = 0
+            current_speech_audio.clear() # 清除過長的純靜音緩衝區，避免無用數據積累
 
 
 # --- 語音片段處理和識別 ---
@@ -100,20 +124,28 @@ def process_current_speech_segment():
         return
 
     combined_audio_data = b"".join(current_speech_audio)
-
-    # 將 Bytes 轉換回 NumPy array (Whisper 需要)
-    # 這裡假設你的 `combined_audio_data` 是 16-bit PCM 格式
     audio_np = np.frombuffer(combined_audio_data, dtype=np.int16).astype(np.float32) / 32767.0
 
     if len(audio_np) > 0:
         print(f"\nProcessing a speech segment of length: {len(audio_np)/SAMPLE_RATE:.2f} seconds...")
         try:
-            # 使用 Whisper 進行識別
-            # 注意：這裡 `chunk_length_s` 和 `stride` 參數在 pipeline 中通常不需要手動設置
-            # pipeline 會處理音頻分割，但如果音頻太長，它會自動分塊
-            transcription = asr_pipeline(audio_np, chunk_length_s=30,
-                                         generate_kwargs={"language": WHISPER_LANGUAGE})
-            print(f"識別結果: {transcription['text']}")
+            # 1. 將音頻數據處理為模型輸入格式
+            # `return_attention_mask=True` 對於較新版本的模型是必要的
+            input_features = processor(audio_np, sampling_rate=SAMPLE_RATE, return_tensors="pt").input_features
+
+            # 2. 將輸入特徵移動到正確的設備 (CPU)
+            input_features = input_features.to(device)
+
+            # 3. 生成文本 (使用模型的 generate 方法)
+            # 這會利用模型內建的長音頻處理機制
+            # 指定語言，並可以加上 return_timestamps=True 獲取更詳細的信息
+            predicted_ids = model.generate(input_features, 
+                                         return_timestamps=False) # 根據需要是否返回時間戳
+
+            # 4. 將預測的 token ID 解碼為文本
+            transcription = processor.batch_decode(predicted_ids, skip_special_tokens=True)[0]
+            print(f"識別結果: {transcription}")
+
         except Exception as e:
             print(f"Whisper 識別失敗: {e}", file=sys.stderr)
     else:
