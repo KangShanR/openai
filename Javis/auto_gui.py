@@ -6,7 +6,7 @@ import time
 # --- Configuration Parameters ---
 # HOST: Listen on all available network interfaces.
 #       This allows connections from Docker containers (using host.docker.internal or host network mode).
-HOST = '0.0.0.0'
+HOST = '127.0.0.1'
 # PORT: The port number for communication. Must match the port used by the Docker container.
 PORT = 12345
 

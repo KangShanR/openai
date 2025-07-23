@@ -16,7 +16,8 @@ RUN pip install torch torchvision torchaudio --index-url https://download.pytorc
     transformers \
     accelerate \
     sounddevice \
-    webrtcvad
+    webrtcvad \
+    pvporcupine
 
 COPY . .
 
