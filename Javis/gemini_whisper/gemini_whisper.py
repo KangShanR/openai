@@ -8,6 +8,7 @@ import collections
 import torch
 import sys
 import time # 新增導入 time
+import socket
 
 
 # --- 配置參數 ---
@@ -144,6 +145,7 @@ def process_current_speech_segment():
 
             # 4. 將預測的 token ID 解碼為文本
             transcription = processor.batch_decode(predicted_ids, skip_special_tokens=True)[0]
+            send_command_to_host(transcription)
             print(f"識別結果: {transcription}")
 
         except Exception as e:
@@ -154,6 +156,30 @@ def process_current_speech_segment():
 # --- 主程序循環 ---
 print(f"Starting audio stream from device ID: {input_device_id}...")
 print(f"Sample Rate: {SAMPLE_RATE}, Frame Duration: {FRAME_DURATION_MS}ms, Chunk Size: {CHUNK_SIZE}")
+
+# --- 主機 Socket Server 配置 ---
+HOST_IP = 'localhost' # with the --network host parameter in docker run
+HOST_PORT = 12345 # 必須與 host_controller.py 中的 PORT 一致
+
+# ... (其餘 send_command_to_host 函數代碼不變)
+def send_command_to_host(command):
+    """將識別到的命令發送給主機"""
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
+            print(f"Connecting to {HOST_IP}:{HOST_PORT}...")
+            client_socket.connect((HOST_IP, HOST_PORT))
+            print(f"Successfully connected to {HOST_IP}:{HOST_PORT}.")
+
+            time.sleep(0.1) # 延遲 100 毫秒，確保服務器準備就緒
+
+            client_socket.sendall(command.encode('utf-8'))
+            print(f"Sent command to host: '{command}'")
+    except ConnectionRefusedError:
+        print(f"Error: Connection refused by host at {HOST_IP}:{HOST_PORT}. Is host_controller.py running?", file=sys.stderr)
+    except Exception as e:
+        print(f"Error sending command: {e}", file=sys.stderr)
+
+
 
 # 全局變量用於緩衝音頻
 frames_buffer = collections.deque(maxlen=int(MAX_AUDIO_BUFFER_SAMPLES / CHUNK_SIZE))
