@@ -70,7 +70,14 @@
             
         </div>
         <div class="input-group">
-            <button onclick="sendCommand('screenshot', {filename: 'web_screenshot.png'})">Take Screenshot</button>
+            <button onclick="sendCommand('press', {key: 'home'})">Home</button>
+            <button onclick="sendCommand('press', {key: 'up'})">Up</button>
+            <button onclick="sendCommand('press', {key: 'pageup'})">PgUp</button>
+        </div>
+        <div class="input-group">
+            <button onclick="sendCommand('press', {key: 'end'})">End</button>
+            <button onclick="sendCommand('press', {key: 'down'})">Down</button>
+            <button onclick="sendCommand('press', {key: 'pagedowm'})">Pgdn</button>
         </div>
 
         <hr>
