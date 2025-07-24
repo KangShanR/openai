@@ -6,9 +6,9 @@ import re
 # --- Configuration Parameters ---
 # HOST: Listen on all available network interfaces.
 #       This allows connections from Docker containers (using host.docker.internal or host network mode).
-HOST = '127.0.0.1'
+HOST = '192.168.8.129'
 # PORT: The port number for communication. Must match the port used by the Docker container.
-PORT = 12345
+PORT = 9527
 
 # --- PyAutoGUI Settings ---
 # FAILSAFE: If the mouse is moved to the top-left corner (0,0), PyAutoGUI will raise an exception and terminate.

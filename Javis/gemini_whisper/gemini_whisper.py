@@ -23,7 +23,7 @@ VAD_MODE = 3  # VAD 模式：0 (積極), 1 (普通), 2 (溫和), 3 (最溫和)
 MIN_SPEECH_FRAMES = 8 # 8 * 30ms = 240ms 的語音
 
 # Whisper 參數
-WHISPER_MODEL = "openai/whisper-tiny.en" # 或 "openai/whisper-base", "openai/whisper-small" 等
+WHISPER_MODEL = "openai/whisper-base.en" # 或 "openai/whisper-base", "openai/whisper-small" 等
 # 你可能需要指定語言以提高準確性，例如： "zh" 表示中文
 WHISPER_LANGUAGE = "en"
 

@@ -1,133 +1,110 @@
-import socket
+import asyncio
+import websockets
 import pyautogui
-import sys
-import time
+import json
+import logging
 
-# --- Configuration Parameters ---
-# HOST: Listen on all available network interfaces.
-#       This allows connections from Docker containers (using host.docker.internal or host network mode).
-HOST = '127.0.0.1'
-# PORT: The port number for communication. Must match the port used by the Docker container.
-PORT = 12345
+# 配置日志，方便调试
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-# --- PyAutoGUI Settings ---
-# FAILSAFE: If the mouse is moved to the top-left corner (0,0), PyAutoGUI will raise an exception and terminate.
-#           This is a safety feature to stop the script if it goes rogue.
-#           Highly recommended to keep True during testing.
-pyautogui.FAILSAFE = True
-# PAUSE: The delay in seconds after each PyAutoGUI call.
-#        Helps prevent operations from being too fast for the system to react.
-pyautogui.PAUSE = 0.5
+# *** 重要：请将此处的 IP 地址替换为你的电脑在内网中的实际 IP 地址。***
+# 如何查找：Windows 打开 CMD 输入 'ipconfig'，查找 IPv4 地址；macOS/Linux 打开终端输入 'ifconfig' 或 'ip a'。
+HOST = '192.168.8.129' # 例如: '192.168.1.100' 或 '10.0.0.5'
+PORT = 9999 # WebSocket 服务的默认端口通常是 80 或 443，但测试时使用其他端口更方便
 
-# --- Command Mapping ---
-# This dictionary maps recognized voice commands (strings) to PyAutoGUI actions (functions).
-# You can easily add, remove, or modify commands here.
-COMMAND_MAP = {
-    # System/Application Control
-    "打開瀏覽器": lambda: (pyautogui.hotkey('win', 'r'), pyautogui.write('microsoft-edge'), pyautogui.press('enter')),
-    "打開記事本": lambda: (pyautogui.hotkey('win', 'r'), pyautogui.write('notepad'), pyautogui.press('enter')),
-    "關閉應用": lambda: pyautogui.hotkey('alt', 'f4'),
-    "截圖": lambda: pyautogui.screenshot(f'screenshot_{int(time.time())}.png'), # Adds timestamp to filename
-    "鎖定電腦": lambda: pyautogui.hotkey('win', 'l'),
-    "最小化所有窗口": lambda: pyautogui.hotkey('win', 'd'),
-    "打開任務管理器": lambda: pyautogui.hotkey('ctrl', 'shift', 'esc'),
-
-    # Media Control
-    "音量調高": lambda: pyautogui.press('volumeup'),
-    "音量調低": lambda: pyautogui.press('volumedown'),
-    "靜音": lambda: pyautogui.press('volumemute'),
-    "播放暫停": lambda: pyautogui.press('playpause'),
-    "下一曲": lambda: pyautogui.press('nexttrack'),
-    "上一曲": lambda: pyautogui.press('prevtrack'),
-
-    # Navigation/Typing
-    "向下滾動": lambda: pyautogui.scroll(-500),
-    "向上滾動": lambda: pyautogui.scroll(500),
-    "點擊": lambda: pyautogui.click(),
-    "雙擊": lambda: pyautogui.doubleClick(),
-    "右擊": lambda: pyautogui.rightClick(),
-    "回車": lambda: pyautogui.press('enter'),
-    "退格": lambda: pyautogui.press('backspace'),
-    "輸入": lambda: print("準備接收輸入內容..."), # Placeholder for commands that need further input
-    "清空搜索框": lambda: pyautogui.hotkey('ctrl', 'a', 'backspace'),
-
-    # Example for text input (you'd need to send the text after "輸入")
-    "輸入 hello world": lambda: pyautogui.write('hello world'),
-    "輸入百度": lambda: pyautogui.write('baidu.com'),
-
-    # You can add more complex sequences or prompts for user input
-}
-
-def execute_command(command_text: str):
+async def handle_message(websocket):
     """
-    Executes a PyAutoGUI action based on the recognized command text.
-    Handles exact matches and simple "input text" commands.
+    处理来自客户端的 WebSocket 消息。
+    接收 JSON 格式的命令，执行 PyAutoGUI 操作，并发送响应。
     """
-    command_text = command_text.strip().lower() # Normalize command for matching
+    client_address = websocket.remote_address
+    logging.info(f"Client connected: {client_address}")
 
-    # Handle explicit "input" commands
-    if command_text.startswith("輸入"):
-        text_to_type = command_text[2:].strip() # Extract text after "輸入"
-        if text_to_type:
-            print(f"Typing: '{text_to_type}'")
-            pyautogui.write(text_to_type)
-            print("Text typed successfully.")
-        else:
-            print("Command '輸入' received, but no text provided.")
-        return # Command handled
+    try:
+        async for message in websocket:
+            logging.info(f"Received from {client_address}: {message}")
+            response_message = {"status": "error", "message": "Unknown error."}
 
-    # Handle other predefined commands
-    action = COMMAND_MAP.get(command_text)
-    if action:
-        print(f"Executing command: '{command_text}'")
-        try:
-            action()
-            print("Command executed successfully.")
-        except Exception as e:
-            print(f"Error executing command '{command_text}': {e}", file=sys.stderr)
-    else:
-        print(f"Unknown command: '{command_text}'")
+            try:
+                # 解析 JSON 消息，预期格式如: {"command": "click", "args": {"x": 100, "y": 200}}
+                command_data = json.loads(message)
+                command = command_data.get('command', '').lower()
+                args = command_data.get('args', {}) # args 期望是一个字典
 
-def start_server():
-    """
-    Starts the Socket server to listen for commands from the Docker container.
-    """
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        # Allows reusing the socket address (important if the script restarts quickly)
-        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        s.bind((HOST, PORT))
-        s.listen()
-        print(f"Host Controller: Listening for commands on {HOST}:{PORT}...")
+                if not command:
+                    response_message = {"status": "error", "message": "Command not specified."}
+                elif command == 'click':
+                    x = args.get('x')
+                    y = args.get('y')
+                    if x is not None and y is not None:
+                        pyautogui.click(x, y)
+                        response_message = {"status": "success", "message": f"Clicked at ({x}, {y})."}
+                    else:
+                        response_message = {"status": "error", "message": "Click command requires 'x' and 'y' arguments."}
+                elif command == 'rightclick':
+                    x = args.get('x')
+                    y = args.get('y')
+                    if x is not None and y is not None:
+                        pyautogui.rightClick(x, y)
+                        response_message = {"status": "success", "message": f"RightClicked at ({x}, {y})."}
+                    else:
+                        response_message = {"status": "error", "message": "Click command requires 'x' and 'y' arguments."}
+                elif command == 'type':
+                    text = args.get('text')
+                    if text is not None:
+                        pyautogui.write(text)
+                        response_message = {"status": "success", "message": f"Typed '{text}'."}
+                    else:
+                        response_message = {"status": "error", "message": "Type command requires 'text' argument."}
+                elif command == 'press':
+                    key = args.get('key')
+                    if key is not None:
+                        pyautogui.press(key)
+                        response_message = {"status": "success", "message": f"Pressed '{key}'."}
+                    else:
+                        response_message = {"status": "error", "message": "Press command requires 'key' argument."}
+                elif command == 'hotkey':
+                    keys = args.get('keys') # 期望是一个列表，例如 ["ctrl", "alt", "del"]
+                    if isinstance(keys, list) and all(isinstance(k, str) for k in keys):
+                        pyautogui.hotkey(*keys) 
+                        response_message = {"status": "success", "message": f"Pressed hotkey {keys}."}
+                    else:
+                        response_message = {"status": "error", "message": "Hotkey command requires 'keys' argument as a list of strings."}
+                elif command == 'screenshot':
+                    filename = args.get('filename', 'screenshot.png')
+                    pyautogui.screenshot(filename)
+                    response_message = {"status": "success", "message": f"Screenshot saved to {filename}."}
+                else:
+                    response_message = {"status": "error", "message": f"Unknown command: '{command}'."}
 
-        while True:
-            conn, addr = s.accept() # Accept a new connection
-            with conn: # Use 'with' statement for automatic closing
-                print(f"Host Controller: Connected by {addr}")
-                while True:
-                    data = conn.recv(1024) # Receive data (up to 1024 bytes)
-                    if not data:
-                        # No data means the client has disconnected
-                        break
-                    command = data.decode('utf-8').strip()
-                    print(f"Host Controller: Received command: '{command}'")
-                    execute_command(command)
-            print(f"Host Controller: Connection from {addr} closed.")
+            except json.JSONDecodeError:
+                response_message = {"status": "error", "message": "Invalid JSON format received."}
+            except Exception as e:
+                response_message = {"status": "error", "message": f"Error executing command: {e}"}
+            
+            # 发送 JSON 格式的响应回客户端
+            await websocket.send(json.dumps(response_message))
+
+    except websockets.exceptions.ConnectionClosedOK:
+        logging.info(f"Client disconnected gracefully: {client_address}")
+    except websockets.exceptions.ConnectionClosedError as e:
+        logging.error(f"Client disconnected with error ({e.code}, {e.reason}): {client_address}")
+    except Exception as e:
+        logging.exception(f"An unexpected error occurred with {client_address}")
+    finally:
+        logging.info(f"Connection with {client_address} closed.")
+
+async def start_websocket_server():
+    """启动 WebSocket 服务器，监听并处理连接"""
+    logging.warning("WARNING: This server allows network control of your mouse and keyboard.")
+    logging.warning("Ensure you understand the security implications before proceeding.")
+
+    # 启动 WebSocket 服务器，绑定到指定 IP 和端口
+    async with websockets.serve(handle_message, HOST, PORT):
+        logging.info(f"PyAutoGUI WebSocket server listening on ws://{HOST}:{PORT}")
+        # 保持服务器运行，直到程序被外部中断 (例如 Ctrl+C)
+        await asyncio.Future() 
 
 if __name__ == "__main__":
-    # --- IMPORTANT: Install pyautogui on your host machine ---
-    # pip install pyautogui
-
-    # --- Consider dependencies for PyAutoGUI ---
-    # For Linux:
-    # sudo apt-get install scrot # For screenshot functionality (Linux only)
-    # sudo apt-get install python3-tk python3-dev # For cross-platform support of message boxes (optional)
-
-    print("--- Starting Host Controller ---")
-    try:
-        start_server()
-    except KeyboardInterrupt:
-        print("\nHost Controller: Server stopped by user (Ctrl+C).")
-    except Exception as e:
-        print(f"Host Controller: An unexpected error occurred: {e}", file=sys.stderr)
-    finally:
-        print("--- Host Controller Finished ---")
+    # 使用 asyncio 运行 WebSocket 服务器
+    asyncio.run(start_websocket_server())
