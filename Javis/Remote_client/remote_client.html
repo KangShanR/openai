@@ -1,17 +1,86 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>PyAutoGUI Web Control</title>
+    <!-- <title>PyAutoGUI Web Control</title> -->
     <meta charset="UTF-8">
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 20px; background-color: #f4f7f6; color: #333; }
         .container { max-width: 800px; margin: auto; background-color: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
         h1, h2 { color: #2c3e50; border-bottom: 2px solid #e0e0e0; padding-bottom: 10px; margin-bottom: 20px; }
         hr { border: 0; height: 1px; background-color: #eee; margin: 30px 0; }
-        .input-group { margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
-        .input-group label { min-width: 80px; text-align: right; }
-        .input-group input[type="text"], .input-group input[type="number"] { flex-grow: 1; padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; }
-        button { padding: 10px 20px; background-color: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem; transition: background-color 0.2s ease, transform 0.1s ease; }
+        .input-group {
+            /* Remove justify-content: center; if you want left alignment for the whole group */
+            display: flex;
+            flex-direction: column; /* Stack items vertically */
+            margin-bottom: 15px;
+            align-items: center;
+            gap: 10px; /* Space between the input-fields div and the button */
+        }
+
+        .input-fields {
+            display: flex; /* Make label and inputs flex items */
+            align-items: center;
+            gap: 10px; /* Space between label and input */
+            flex-wrap: wrap; /* Allow inputs to wrap if window is too small */
+            justify-content: center;
+            width: 80%; /* Ensure input-fields itself takes full width of its parent */
+        }
+
+        .input-group label {
+            text-align: right;
+            /* Optional: Set a flex-shrink to prevent it from getting too small if needed */
+            flex: 1 1 30%; 
+        }
+
+        .input-group input[type="text"],
+        .input-group input[type="number"] {
+            /* flex: <flex-grow> <flex-shrink> <flex-basis>; */
+            /* flex-grow: 1;  -- allows it to grow to fill space */
+            /* flex-shrink: 1; -- allows it to shrink */
+            /* flex-basis: 0;  -- tells it to start with 0 width before growing */
+            flex: 1 1 60%;
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        /* Style for specific small inputs like X/Y coordinates */
+        .input-group input[id^="click"] {
+            width: 80px; /* Make X and Y inputs even smaller */
+        }
+        /* button { padding: 10px 20px; background-color: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem; transition: background-color 0.2s ease, transform 0.1s ease; } */
+        button {
+            flex: 1 1 0;
+            padding: 10px 20px; background-color: #3498db; 
+            color: white; border: none; border-radius: 5px; cursor: pointer;
+            font-size: 1rem; transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+        .buttonContainer {
+            /* Use Flexbox for easy centering */
+            display: flex;
+            justify-content: center; /* Horizontally centers the items */
+            align-items: center;     /* Vertically centers the items (if container has height) */
+            /* Optional: Set a height for the container to see vertical centering in action */
+            min-height: 70px;
+            /* Optional: Add some padding or margin if needed */
+        }
+
+        .arrayBtn {
+            /* Make buttons larger */
+            padding: 15px 30px; /* Adjust padding for bigger buttons */
+            font-size: 1.2em;   /* Increase font size */
+            /* Set line-height for the text *within* the button */
+            line-height: 1.5; /* Adjust as needed. This affects text spacing inside the button. */
+            /* Optional: Add some spacing between buttons */
+            margin: 0 10px;
+            /* Basic button styling */
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
         button:hover { background-color: #2980b9; transform: translateY(-1px); }
         button:active { transform: translateY(0); }
         button:disabled { background-color: #bdc3c7; cursor: not-allowed; }
@@ -24,61 +93,96 @@
         .message-received { color: #27ae60; }
         .message-error { color: #e74c3c; font-weight: bold; }
         .message-info { color: #8e44ad; }
+        #serverPort {width: 100px;}
+        #serverIp {width: 200px;}
+        #clickX {width: 80px;}
+        #clickY {width: 80px;}
+    
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>PyAutoGUI Web Control</h1>
+        <!-- <h1>PyAutoGUI Web Control</h1> -->
 
         <p>
             <span class="status-indicator" id="statusIndicator"></span> Server Status: <span id="statusText" style="color: red;">Disconnected</span>
         </p>
 
         <div class="input-group">
-            <button id="connectBtn">Connect</button>
-            <button id="disconnectBtn" disabled>Disconnect</button>
-            <label for="serverIp">Server IP:</label>
-            <input type="text" id="serverIp" placeholder="192.168.8.129" value="192.168.8.129">
-            <label for="serverPort">Port:</label>
-            <input type="number" id="serverPort" value="9999">
+            <div  class="input-fields">            
+                <label for="serverIp">Server IP:</label>
+                <input type="text" id="serverIp">
+                <label for="serverPort">Port:</label>
+                <input type="number" id="serverPort" value="9999">
+            </div>
+            <div class="input-fields">       
+                <button id="connectBtn">Connect</button>
+                <button id="disconnectBtn" disabled>Disconnect</button>
+            </div>
         </div>
-
         <hr>
 
-        <h2>Control Commands:</h2>
-        <div class="input-group">
-            <button onclick="sendCommand('click', {x: parseInt(document.getElementById('clickX').value), y: parseInt(document.getElementById('clickY').value)})">Click</button>
-            <button onclick="sendCommand('rightclick', {x: parseInt(document.getElementById('clickX').value), y: parseInt(document.getElementById('clickY').value)})">RightClick</button>
-            <label>Click:</label>
-            X: <input type="number" id="clickX" value="1500">
-            Y: <input type="number" id="clickY" value="800">
+        <!-- <h2>Control Commands:</h2> -->
+         <div class="input-group">
+            <div class="input-fields">
+                <button class="arrayBtn" onclick="sendCommand('press', {key: 'home'})">🏠</button>
+                <button class="arrayBtn" onclick="sendCommand('press', {key: 'up'})">👆</button>
+                <button class="arrayBtn" onclick="sendCommand('press', {key: 'pageup'})">⬆️</button>
+            </div>
+
+            <div class="input-fields">
+                <button class="arrayBtn" onclick="sendCommand('press', {key: 'left'})">👈</button>
+                <button class="arrayBtn" onclick="sendCommand('press', {key: 'enter'})">🫵</button>
+                <button class="arrayBtn" onclick="sendCommand('press', {key: 'right'})">👉</button>
+            </div>
+            <div class="input-fields">
+                <button class="arrayBtn" onclick="sendCommand('press', {key: 'end'})">🔚</button>
+                <button class="arrayBtn" onclick="sendCommand('press', {key: 'down'})">👇</button>
+                <button class="arrayBtn" onclick="sendCommand('press', {key: 'pagedown'})">⬇️</button>
+            </div>
         </div>
+        <hr>
         <div class="input-group">
-            <button onclick="sendCommand('type', {text: document.getElementById('typeText').value})">Type</button>
-            <label>Type Text:</label>
-            <input type="text" id="typeText" value="Hello from Web!">
+            <div class="input-fields">
+                <label>X:</label>
+                <input type="number" id="clickX" value="1500">
+                <label>Y:</label><input type="number" id="clickY" value="800">
+            </div>
+            <div class="input-fields">
+                <button onclick="sendCommand('click', {x: parseInt(document.getElementById('clickX').value), y: parseInt(document.getElementById('clickY').value)})">Click</button>
+                <button onclick="sendCommand('rightclick', {x: parseInt(document.getElementById('clickX').value), y: parseInt(document.getElementById('clickY').value)})">RightClick</button>
+            </div>
         </div>
+        <hr>
         <div class="input-group">
-            <button onclick="sendCommand('press', {key: document.getElementById('pressKey').value})">Press</button>
-            <label>Press Key:</label>
-            <input type="text" id="pressKey" placeholder="e.g., enter, esc, space" value="enter">
+            <div class="input-fields">       
+                <label>Type Text:</label>
+                <input type="text" id="typeText">
+            </div>
+            <div class="input-fields">            
+                <button onclick="sendCommand('type', {text: document.getElementById('typeText').value})">Type</button>
+            </div>
         </div>
+        <hr>
         <div class="input-group">
-            <button onclick="sendCommand('hotkey', {keys: document.getElementById('hotkeyKeys').value.split(' ')})">Hotkey</button>
-            <label>Hotkey:</label>
-            <input type="text" id="hotkeyKeys" placeholder="space separated, e.g., ctrl alt del" value="ctrl alt del">
-            
+            <div  class="input-fields">
+                <label>Press Key:</label>
+                <input type="text" id="pressKey" placeholder="e.g., enter, esc, space">
+            </div>
+            <div  class="input-fields">
+                <button onclick="sendCommand('press', {key: document.getElementById('pressKey').value})">Press</button>
+            </div>
         </div>
+        <hr>
         <div class="input-group">
-            <button onclick="sendCommand('press', {key: 'home'})">Home</button>
-            <button onclick="sendCommand('press', {key: 'up'})">Up</button>
-            <button onclick="sendCommand('press', {key: 'pageup'})">PgUp</button>
-        </div>
-        <div class="input-group">
-            <button onclick="sendCommand('press', {key: 'end'})">End</button>
-            <button onclick="sendCommand('press', {key: 'down'})">Down</button>
-            <button onclick="sendCommand('press', {key: 'pagedowm'})">Pgdn</button>
-        </div>
+            <div class="input-fields">
+                <label>Hotkey:</label>
+                <input type="text" id="hotkeyKeys" placeholder="space separated, e.g., ctrl alt del">
+            </div>
+            <div class="input-fields">
+                <button  onclick="sendCommand('hotkey', {keys: document.getElementById('hotkeyKeys').value.split(' ')})">Hotkey</button>
+            </div>
+            </div>
 
         <hr>
 
@@ -175,6 +279,18 @@
 
         // 尝试自动填充当前网页所在的主机IP，方便本地测试
         serverIpInput.value = "192.168.8.129"; 
+
+
+        var lastTached = 0;
+        document.documentElement.addEventListener('taouched', function (evnet) {
+            var now = Date.now();
+            if(now - lastTached <= 300){
+                event.preventDefault();
+            }
+            lastTached = now;
+        },{
+            passive:false
+        });
     </script>
 </body>
 </html>
