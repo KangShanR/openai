@@ -23,13 +23,15 @@
             gap: 10px; /* Space between label and input */
             flex-wrap: wrap; /* Allow inputs to wrap if window is too small */
             justify-content: center;
-            width: 80%; /* Ensure input-fields itself takes full width of its parent */
+            width: 100%; /* Ensure input-fields itself takes full width of its parent */
+            /* height: 80px; */
         }
 
         .input-group label {
             text-align: right;
             /* Optional: Set a flex-shrink to prevent it from getting too small if needed */
-            flex: 1 1 30%; 
+            flex: 0 0 30%; 
+            font-size: 1.5rem;
         }
 
         .input-group input[type="text"],
@@ -38,52 +40,34 @@
             /* flex-grow: 1;  -- allows it to grow to fill space */
             /* flex-shrink: 1; -- allows it to shrink */
             /* flex-basis: 0;  -- tells it to start with 0 width before growing */
-            flex: 1 1 60%;
+            flex: 1 1 0;
             padding: 8px 12px;
             border: 1px solid #ccc;
             border-radius: 4px;
-            font-size: 1rem;
+            font-size: 1.5rem;
         }
         /* Style for specific small inputs like X/Y coordinates */
         .input-group input[id^="click"] {
             width: 80px; /* Make X and Y inputs even smaller */
         }
-        /* button { padding: 10px 20px; background-color: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem; transition: background-color 0.2s ease, transform 0.1s ease; } */
+        
         button {
             flex: 1 1 0;
             padding: 10px 20px; background-color: #3498db; 
             color: white; border: none; border-radius: 5px; cursor: pointer;
-            font-size: 1rem; transition: background-color 0.2s ease, transform 0.1s ease;
+            font-size: 2rem; 
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            height: 90px;
         }
-        .buttonContainer {
-            /* Use Flexbox for easy centering */
-            display: flex;
-            justify-content: center; /* Horizontally centers the items */
-            align-items: center;     /* Vertically centers the items (if container has height) */
-            /* Optional: Set a height for the container to see vertical centering in action */
-            min-height: 70px;
-            /* Optional: Add some padding or margin if needed */
+        
+        button:hover { background-color: #2980b9; transform: translateY(-3px); }
+        button:active {
+            background-color: #6f1036; 
+            transform: translateY(1px); 
         }
-
-        .arrayBtn {
-            /* Make buttons larger */
-            padding: 15px 30px; /* Adjust padding for bigger buttons */
-            font-size: 1.2em;   /* Increase font size */
-            /* Set line-height for the text *within* the button */
-            line-height: 1.5; /* Adjust as needed. This affects text spacing inside the button. */
-            /* Optional: Add some spacing between buttons */
-            margin: 0 10px;
-            /* Basic button styling */
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
+        button:disabled {
+            background-color: #bdc3c7; cursor: not-allowed;
         }
-        button:hover { background-color: #2980b9; transform: translateY(-1px); }
-        button:active { transform: translateY(0); }
-        button:disabled { background-color: #bdc3c7; cursor: not-allowed; }
         .status-indicator { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 8px; background-color: red; transition: background-color 0.3s ease; }
         .status-indicator.connected { background-color: green; }
         #messages { border: 1px solid #e0e0e0; background-color: #fcfcfc; padding: 15px; min-height: 150px; max-height: 300px; overflow-y: auto; margin-top: 15px; border-radius: 5px; }
@@ -97,7 +81,16 @@
         #serverIp {width: 200px;}
         #clickX {width: 80px;}
         #clickY {width: 80px;}
-    
+        
+        button.key-down {
+            background-color: #e74c3c; /* A distinct red to show it's "held down" */
+            transform: translateY(1px); /* Keep it visually pressed */
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5); /* Adds a sunken effect */
+        }
+        button.key-down:hover { /* Override hover effect when key is down */
+            transform: translateY(1px);
+            background-color: #e74c3c;
+        }
     </style>
 </head>
 <body>
@@ -109,7 +102,7 @@
         </p>
 
         <div class="input-group">
-            <div  class="input-fields">            
+            <div style="display: none" class="input-fields">            
                 <label for="serverIp">Server IP:</label>
                 <input type="text" id="serverIp">
                 <label for="serverPort">Port:</label>
@@ -125,9 +118,9 @@
         <!-- <h2>Control Commands:</h2> -->
          <div class="input-group">
             <div class="input-fields">
-                <button class="arrayBtn" onclick="sendCommand('press', {key: 'home'})">🏠</button>
+                <button class="arrayBtn" onclick="sendCommand('press', {key: 'home'})">Home</button>
                 <button class="arrayBtn" onclick="sendCommand('press', {key: 'up'})">👆</button>
-                <button class="arrayBtn" onclick="sendCommand('press', {key: 'pageup'})">⬆️</button>
+                <button class="arrayBtn" onclick="sendCommand('press', {key: 'pageup'})">PageUp</button>
             </div>
 
             <div class="input-fields">
@@ -136,16 +129,42 @@
                 <button class="arrayBtn" onclick="sendCommand('press', {key: 'right'})">👉</button>
             </div>
             <div class="input-fields">
-                <button class="arrayBtn" onclick="sendCommand('press', {key: 'end'})">🔚</button>
+                <button class="arrayBtn" onclick="sendCommand('press', {key: 'end'})">End</button>
                 <button class="arrayBtn" onclick="sendCommand('press', {key: 'down'})">👇</button>
-                <button class="arrayBtn" onclick="sendCommand('press', {key: 'pagedown'})">⬇️</button>
+                <button class="arrayBtn" onclick="sendCommand('press', {key: 'pagedown'})">PageDown</button>
             </div>
         </div>
         <hr>
         <div class="input-group">
             <div class="input-fields">
-                <label>X:</label>
-                <input type="number" id="clickX" value="1500">
+                <button  onclick="sendCommand('press', {key: 'esc'})">Esc</button>
+                <button  onclick="sendCommand('hotkey', {keys: ['ctrl', 'a']})">All</button>
+            </div>
+            <div class="input-fields">
+                <button  onclick="sendCommand('press', {key: 'backspace'})">Backspace</button>
+                <button  onclick="sendCommand('press', {key: 'delete'})">Delete</button>
+            </div>
+            <div class="input-fields">
+                <button onclick="sendCommand('press', {key: 'f2'})">F2</button>
+                <button onclick="sendCommand('press', {key: 'f5'})">F5</button>
+                <button onclick="sendCommand('press', {key: 'f11'})">F11</button>
+            </div>
+            <div class="input-fields">
+                <button onclick="sendCommand('press', {key: 'win'})">Super</button>
+                <button onclick="sendCommand('press', {key: 'space'})"> </button>
+            </div>
+        </div>
+        <hr>
+        
+        <div class="input-group">
+            <div class="input-fields">
+                <button id="toggleAlt" data-key="alt" class="toggle-key">Alt</button>
+            </div>
+        </div>
+        <hr>
+        <div class="input-group">
+            <div class="input-fields">
+                <label>X:</label><input type="number" id="clickX" value="1500">
                 <label>Y:</label><input type="number" id="clickY" value="800">
             </div>
             <div class="input-fields">
@@ -160,7 +179,7 @@
                 <input type="text" id="typeText">
             </div>
             <div class="input-fields">            
-                <button onclick="sendCommand('type', {text: document.getElementById('typeText').value})">Type</button>
+                <button onclick="sendCommand('type', {text: document.getElementById('typeText').value.trim()})">Type</button>
             </div>
         </div>
         <hr>
@@ -170,7 +189,7 @@
                 <input type="text" id="pressKey" placeholder="e.g., enter, esc, space">
             </div>
             <div  class="input-fields">
-                <button onclick="sendCommand('press', {key: document.getElementById('pressKey').value})">Press</button>
+                <button onclick="sendCommand('press', {key: document.getElementById('pressKey').value.trim()})">Press</button>
             </div>
         </div>
         <hr>
@@ -180,9 +199,10 @@
                 <input type="text" id="hotkeyKeys" placeholder="space separated, e.g., ctrl alt del">
             </div>
             <div class="input-fields">
-                <button  onclick="sendCommand('hotkey', {keys: document.getElementById('hotkeyKeys').value.split(' ')})">Hotkey</button>
+                <button  onclick="sendCommand('hotkey', {keys: document.getElementById('hotkeyKeys')
+                .value.trim().split(' ')})">Hotkey</button>
             </div>
-            </div>
+        </div>
 
         <hr>
 
@@ -281,16 +301,39 @@
         serverIpInput.value = "192.168.8.129"; 
 
 
-        var lastTached = 0;
-        document.documentElement.addEventListener('taouched', function (evnet) {
-            var now = Date.now();
-            if(now - lastTached <= 300){
-                event.preventDefault();
-            }
-            lastTached = now;
-        },{
-            passive:false
+        // Object to keep track of pressed toggle keys
+        const pressedToggleKeys = {}; // Stores { 'ctrl': true, 'alt': false, ... }
+
+        // ... (inside DOMContentLoaded listener) ...
+
+        const toggleKeyButtons = document.querySelectorAll('.toggle-key');
+
+        toggleKeyButtons.forEach(button => {
+            const key = button.dataset.key; // Get the key name from data-key attribute
+            pressedToggleKeys[key] = false; // Initialize state for each key as "up"
+
+            button.addEventListener('click', function() {
+                if (!ws || ws.readyState !== WebSocket.OPEN) {
+                    logMessage('Not connected to server. Please connect first to toggle keys.', 'error');
+                    return;
+                }
+
+                if (pressedToggleKeys[key]) {
+                    // Key is currently "down", so send keyup
+                    sendCommand('keyup', { key: key });
+                    this.classList.remove('key-down'); // Remove visual "down" state
+                    logMessage(`KeyUp: ${key}`, 'sent');
+                    pressedToggleKeys[key] = false;
+                } else {
+                    // Key is currently "up", so send keydown
+                    sendCommand('keydown', { key: key });
+                    this.classList.add('key-down'); // Add visual "down" state
+                    logMessage(`KeyDown: ${key}`, 'sent');
+                    pressedToggleKeys[key] = true;
+                }
+            });
         });
+
     </script>
 </body>
 </html>

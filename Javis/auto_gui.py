@@ -74,6 +74,22 @@ async def handle_message(websocket):
                     filename = args.get('filename', 'screenshot.png')
                     pyautogui.screenshot(filename)
                     response_message = {"status": "success", "message": f"Screenshot saved to {filename}."}
+                elif command == 'keydown':
+                    key = args.get('key')
+                    logging.info(f"Key down: key:{key}")
+                    if key:
+                        pyautogui.keyDown(key)
+                        response_message = {"status": "success", "message": f"Key: {key} was pressed down."}
+                    else:
+                        response_message = {"status": "error", "message": "No specified 'key' in arguments to be pressed down."}
+                elif command == 'keyup':
+                    key = args.get('key')
+                    logging.info(f"Key up: key:{key}")
+                    if key:
+                        pyautogui.keyUp(key)
+                        response_message = {"status": "success", "message": f"Key: {key} was got up."}
+                    else:
+                        response_message = {"status": "error", "message": "No specified 'key' in arguments to be get up."}
                 else:
                     response_message = {"status": "error", "message": f"Unknown command: '{command}'."}
 
