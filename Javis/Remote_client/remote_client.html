@@ -151,7 +151,7 @@
             </div>
             <div class="input-fields">
                 <button onclick="sendCommand('press', {key: 'win'})">Super</button>
-                <button onclick="sendCommand('press', {key: 'space'})"> </button>
+                <button id="spaceButton" onclick="sendCommand('press', {key: 'space'})">Space</button>
             </div>
         </div>
         <hr>
@@ -334,6 +334,14 @@
             });
         });
 
+        const spaceButton = document.getElementById('spaceButton');
+        if (spaceButton) { // Good practice: check if element exists before adding listener
+            spaceButton.addEventListener('keydown', function(event) {
+                if (event.key === ' ' || event.key === 'Spacebar') {
+                    event.preventDefault();
+                }
+            });
+        }        
     </script>
 </body>
 </html>
