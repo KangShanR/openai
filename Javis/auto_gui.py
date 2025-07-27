@@ -90,6 +90,14 @@ async def handle_message(websocket):
                         response_message = {"status": "success", "message": f"Key: {key} was got up."}
                     else:
                         response_message = {"status": "error", "message": "No specified 'key' in arguments to be get up."}
+                elif command == 'hold':
+                    key = args.get('key')
+                    logging.info(f"Key hold: key:{key}")
+                    if key:
+                        pyautogui.hold(key)
+                        response_message = {"status": "success", "message": f"Key: {key} was hold on."}
+                    else:
+                        response_message = {"status": "error", "message": "No specified 'key' in arguments to be hold on."}
                 else:
                     response_message = {"status": "error", "message": f"Unknown command: '{command}'."}
 
