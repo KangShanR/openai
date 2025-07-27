@@ -49,6 +49,22 @@ async def handle_message(websocket):
                         response_message = {"status": "success", "message": f"RightClicked at ({x}, {y})."}
                     else:
                         response_message = {"status": "error", "message": "Click command requires 'x' and 'y' arguments."}
+                elif command == 'moveto':
+                    x = args.get('x')
+                    y = args.get('y')
+                    if x is not None and y is not None:
+                        pyautogui.moveTo(x, y)
+                        response_message = {"status": "success", "message": f"Mouse move to ({x}, {y})."}
+                    else:
+                        response_message = {"status": "error", "message": "Move_to command requires 'x' and 'y' arguments."}
+                elif command == 'move':
+                    x = args.get('x')
+                    y = args.get('y')
+                    if x is not None and y is not None:
+                        pyautogui.move(x, y)
+                        response_message = {"status": "success", "message": f"Mouse move ({x}, {y})."}
+                    else:
+                        response_message = {"status": "error", "message": "Move command requires 'x' and 'y' arguments."}
                 elif command == 'type':
                     text = args.get('text')
                     if text is not None:
