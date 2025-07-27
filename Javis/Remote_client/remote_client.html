@@ -14,13 +14,13 @@
             flex-direction: column; /* Stack items vertically */
             margin-bottom: 15px;
             align-items: center;
-            gap: 10px; /* Space between the input-fields div and the button */
+            gap: 20px; /* Space between the input-fields div and the button */
         }
 
         .input-fields {
             display: flex; /* Make label and inputs flex items */
             align-items: center;
-            gap: 10px; /* Space between label and input */
+            gap: 20px; /* Space between label and input */
             flex-wrap: wrap; /* Allow inputs to wrap if window is too small */
             justify-content: center;
             width: 100%; /* Ensure input-fields itself takes full width of its parent */
@@ -53,11 +53,12 @@
         
         button {
             flex: 1 1 0;
-            padding: 10px 20px; background-color: #3498db; 
-            color: white; border: none; border-radius: 5px; cursor: pointer;
+            padding: 15px 10px; background-color: #3498db; 
+            color: white; 
+            border: none; border-radius: 30px; cursor: pointer;
             font-size: 2rem; 
             transition: background-color 0.2s ease, transform 0.1s ease;
-            height: 90px;
+            height: 120px;
         }
         
         button:hover { background-color: #2980b9; transform: translateY(-3px); }
@@ -157,16 +158,18 @@
         </div>
         <hr>
         <div class="input-group">
+            <div class="input-fields">
+                <button onclick="sendCommand('press', {key: 'ctrl'})">Ctrl</button>
+            </div>
+            <div class="input-fields">
+                <button onclick="sendCommand('press', {key: 'win'})">Win</button>
+            </div>
             <div class="input-fields">  
                 <button onclick="sendCommand('press', {key: 'tab'})">🔄</button>
             </div>
             <div class="input-fields">
                 <button onclick="sendCommand('hotkey', {keys: ['ctrl', 'tab']})">➡️🔄</button>
                 <button onclick="sendCommand('hotkey', {keys: ['ctrl', 'shift', 'tab']})">🔄⬅️</button>
-            </div>
-            <div class="input-fields">
-                <button onclick="sendCommand('press', {key: 'ctrl'})">Ctrl</button>
-                <button onclick="sendCommand('press', {key: 'win'})">Win</button>
             </div>
             <div class="input-fields">
                 <button id="spaceButton" onclick="sendCommand('press', {key: 'space'})">📛</button>
