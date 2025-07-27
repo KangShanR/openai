@@ -158,9 +158,9 @@
         
         <div class="input-group">
             <div class="input-fields">  
-                <button onclick="sendCommand('press', {key: 'tab'})">Tab</button>
-                <button onclick="sendCommand('hotkey', {keys: ['ctrl', 'tab']})">➡️Tab</button>
-                <button onclick="sendCommand('hotkey', {keys: ['ctrl', 'shift', 'tab']})">Tab⬅️</button>
+                <button onclick="sendCommand('press', {key: 'tab'})">🔄</button>
+                <button onclick="sendCommand('hotkey', {keys: ['ctrl', 'tab']})">➡️🔄</button>
+                <button onclick="sendCommand('hotkey', {keys: ['ctrl', 'shift', 'tab']})">🔄⬅️</button>
             </div>
             <div class="input-fields">
                 <button onclick="sendCommand('press', {key: 'ctrl'})">Ctrl</button>
@@ -184,13 +184,15 @@
             </div>
             <div class="input-fields">
                 <button onclick="sendCommand('moveto', {x: parseInt(document.getElementById('clickX').value), 
-                        y: parseInt(document.getElementById('clickY').value)})">MoveTo</button>
+                        y: parseInt(document.getElementById('clickY').value)})">🎯</button>
                 <button onclick="sendCommand('move', {x: parseInt(document.getElementById('clickX').value), 
-                y: parseInt(document.getElementById('clickY').value)})">Move</button>
+                y: parseInt(document.getElementById('clickY').value)})">🏹</button>
             </div>
             <div class="input-fields">
-                <button onclick="sendCommand('click', {x: parseInt(document.getElementById('clickX').value), y: parseInt(document.getElementById('clickY').value)})">Click</button>
-                <button onclick="sendCommand('rightclick', {x: parseInt(document.getElementById('clickX').value), y: parseInt(document.getElementById('clickY').value)})">RightClick</button>
+                <button onclick="sendCommand('click', {x: parseInt(document.getElementById('clickX').value),
+                        y: parseInt(document.getElementById('clickY').value)})">📌</button>
+                <button onclick="sendCommand('rightclick', {x: parseInt(document.getElementById('clickX').value),
+                        y: parseInt(document.getElementById('clickY').value)})">⏳</button>
             </div>
         </div>
         <hr>
