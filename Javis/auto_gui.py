@@ -59,10 +59,11 @@ async def handle_message(websocket):
                     else:
                         response_message = {"status": "error", "message": "Move_to command requires 'x' and 'y' arguments."}
                 elif command == 'move':
-                    x = args.get('x')
-                    y = args.get('y')
+                    x = args.get('x', 0)
+                    y = args.get('y', 0)
+                    duration = args.get('duration', 0.1)
                     if x is not None and y is not None:
-                        pyautogui.move(x, y)
+                        pyautogui.move(x, y, duration=duration) 
                         response_message = {"status": "success", "message": f"Mouse move ({x}, {y})."}
                     else:
                         response_message = {"status": "error", "message": "Move command requires 'x' and 'y' arguments."}

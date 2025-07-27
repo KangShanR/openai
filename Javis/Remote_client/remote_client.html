@@ -5,7 +5,9 @@
     <meta charset="UTF-8">
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 20px; background-color: #f4f7f6; color: #333; }
-        .container { max-width: 800px; margin: auto; background-color: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
+        .container { max-width: 800px; margin: auto; background-color: #fff; padding: 30px;
+            border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
         h1, h2 { color: #2c3e50; border-bottom: 2px solid #e0e0e0; padding-bottom: 10px; margin-bottom: 20px; }
         hr { border: 0; height: 1px; background-color: #eee; margin: 30px 0; }
         .input-group {
@@ -92,12 +94,35 @@
             transform: translateY(1px);
             background-color: #e74c3c;
         }
+
+        /* NEW: Touchpad Area Styles */
+        #touchpad {
+            width: 90%;
+            height: 600px; /* Adjust height as needed */
+            background-color: #ecf0f1; /* Light gray background */
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            margin-left: auto; margin-right: auto;
+            box-sizing: border-box;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: #7f8c8d;
+            user-select: none; /* Prevent text selection on touch */
+            -webkit-user-select: none; /* For Safari */
+            touch-action: none; /* Prevent default browser touch actions like scrolling/zooming */
+        }
+        #touchpad.active {
+            background-color: #dbe4e6; /* Slightly darker when active */
+        }
+
     </style>
 </head>
 <body>
     <div class="container">
         <!-- <h1>PyAutoGUI Web Control</h1> -->
-
         <p>
             <span class="status-indicator" id="statusIndicator"></span> Server Status: <span id="statusText" style="color: red;">Disconnected</span>
         </p>
@@ -189,6 +214,12 @@
             <div class="input-fields">
                 <button onclick="sendCommand('open_terminal_and_exec', {command: 'rkodi'})">🎬</button>
             </div>
+        </div>
+        <hr>
+
+        <h2>Touchpad:</h2>
+        <div id="touchpad">
+            <p>Touch and drag here to move mouse</p>
         </div>
         <hr>
 
@@ -379,7 +410,64 @@
                     event.preventDefault();
                 }
             });
-        }        
+        }
+        
+        
+            // --- NEW: Touchpad Logic ---
+            const touchpad = document.getElementById('touchpad');
+            let lastTouchX = null;
+            let lastTouchY = null;
+            const sensitivity = 2.5; // Adjust this value to change mouse movement speed
+            let count = 0; // 用于节流的计时器变量
+            const DIVIDER = 5; 
+            touchpad.addEventListener('touchstart', (e) => {
+                e.preventDefault(); // Prevent scrolling/zooming on the touchpad area
+                if (e.touches.length === 1) {
+                    count ++;
+                    lastTouchX = e.touches[0].clientX;
+                    lastTouchY = e.touches[0].clientY;
+                    touchpad.classList.add('active'); // Visual feedback
+                }
+            });
+
+            touchpad.addEventListener('touchmove', (e) => {
+                e.preventDefault(); // Prevent scrolling/zooming on the touchpad area
+                if (e.touches.length === 1 && lastTouchX !== null) {
+                    count ++;
+                    if(count % DIVIDER === 0){
+                        const currentTouchX = e.touches[0].clientX;
+                        const currentTouchY = e.touches[0].clientY;
+
+                        const deltaX = (currentTouchX - lastTouchX) * sensitivity;
+                        const deltaY = (currentTouchY - lastTouchY) * sensitivity;
+                        
+                        // Only send command if there's significant movement to avoid spamming
+                        if (Math.abs(deltaX) > 0.1 || Math.abs(deltaY) > 0.1) {
+                            sendCommand('move', { x: deltaX, y: deltaY, duration: 0})
+                            lastTouchX = currentTouchX;
+                            lastTouchY = currentTouchY;
+                        }
+                    }else{
+                        console.log("skiped count:" + count)
+                    }
+                }
+            });
+
+            touchpad.addEventListener('touchend', (e) => {
+                e.preventDefault(); // Prevent default touch behavior
+                lastTouchX = null;
+                lastTouchY = null;
+                touchpad.classList.remove('active'); // Remove visual feedback
+            });
+
+            touchpad.addEventListener('touchcancel', (e) => {
+                e.preventDefault();
+                lastTouchX = null;
+                lastTouchY = null;
+                touchpad.classList.remove('active');
+            });
+            // --- END NEW Touchpad Logic ---
+        
     </script>
 </body>
 </html>
