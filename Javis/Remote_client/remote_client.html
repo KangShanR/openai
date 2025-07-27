@@ -159,12 +159,16 @@
         <div class="input-group">
             <div class="input-fields">  
                 <button onclick="sendCommand('press', {key: 'tab'})">🔄</button>
+            </div>
+            <div class="input-fields">
                 <button onclick="sendCommand('hotkey', {keys: ['ctrl', 'tab']})">➡️🔄</button>
                 <button onclick="sendCommand('hotkey', {keys: ['ctrl', 'shift', 'tab']})">🔄⬅️</button>
             </div>
             <div class="input-fields">
                 <button onclick="sendCommand('press', {key: 'ctrl'})">Ctrl</button>
                 <button onclick="sendCommand('press', {key: 'win'})">Win</button>
+            </div>
+            <div class="input-fields">
                 <button id="spaceButton" onclick="sendCommand('press', {key: 'space'})">📛</button>
                 <button onclick="sendCommand('hotkey', {keys: ['ctrl', 'space']})">🔃</button>
             </div>
