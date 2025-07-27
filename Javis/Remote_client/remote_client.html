@@ -124,7 +124,7 @@
             <div class="input-fields">
                 <button class="arrayBtn" onclick="sendCommand('press', {key: 'home'})">Home</button>
                 <button class="arrayBtn" onclick="sendCommand('press', {key: 'up'})">👆</button>
-                <button class="arrayBtn" onclick="sendCommand('press', {key: 'pageup'})">PageUp</button>
+                <button class="arrayBtn" onclick="sendCommand('press', {key: 'pageup'})">Pgup</button>
             </div>
 
             <div class="input-fields">
@@ -135,7 +135,7 @@
             <div class="input-fields">
                 <button class="arrayBtn" onclick="sendCommand('press', {key: 'end'})">End</button>
                 <button class="arrayBtn" onclick="sendCommand('press', {key: 'down'})">👇</button>
-                <button class="arrayBtn" onclick="sendCommand('press', {key: 'pagedown'})">PageDown</button>
+                <button class="arrayBtn" onclick="sendCommand('press', {key: 'pagedown'})">Pgdn</button>
             </div>
         </div>
         <hr>
@@ -150,22 +150,23 @@
                 <button  onclick="sendCommand('hotkey', {keys: ['ctrl', 'a']})">All</button>
             </div>
             <div class="input-fields">
-                <button  onclick="sendCommand('press', {key: 'backspace'})">Backspace</button>
-                <button  onclick="sendCommand('press', {key: 'delete'})">Delete</button>
+                <button  onclick="sendCommand('press', {key: 'backspace'})">Back</button>
+                <button  onclick="sendCommand('press', {key: 'delete'})">Del</button>
             </div>
         </div>
         <hr>
         
         <div class="input-group">
-            <div class="input-fields">
+            <div class="input-fields">  
                 <button onclick="sendCommand('press', {key: 'tab'})">Tab</button>
                 <button onclick="sendCommand('hotkey', {keys: ['ctrl', 'tab']})">➡️Tab</button>
                 <button onclick="sendCommand('hotkey', {keys: ['ctrl', 'shift', 'tab']})">Tab⬅️</button>
             </div>
             <div class="input-fields">
-                <button onclick="sendCommand('press', {key: 'win'})">Super</button>
-                <button id="spaceButton" onclick="sendCommand('press', {key: 'space'})">Space</button>
-                <button onclick="sendCommand('hotkey', {keys: ['ctrl', 'space']})">Switch Input</button>
+                <button onclick="sendCommand('press', {key: 'ctrl'})">Ctrl</button>
+                <button onclick="sendCommand('press', {key: 'win'})">Win</button>
+                <button id="spaceButton" onclick="sendCommand('press', {key: 'space'})">📛</button>
+                <button onclick="sendCommand('hotkey', {keys: ['ctrl', 'space']})">🔃</button>
             </div>
         </div>
         <hr>
