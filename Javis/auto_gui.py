@@ -1,4 +1,5 @@
 import asyncio
+import time
 import websockets
 import pyautogui
 import json
@@ -114,6 +115,27 @@ async def handle_message(websocket):
                         response_message = {"status": "success", "message": f"Key: {key} was hold on."}
                     else:
                         response_message = {"status": "error", "message": "No specified 'key' in arguments to be hold on."}
+                elif command == 'open_terminal_and_exec':
+                    target_command = args.get('command')
+                    if target_command:                        
+                        # Attempt to open common terminals (e.g., gnome-terminal, xterm, konsole)
+                        # This is less reliable due to varied desktop environments
+                        # For best results, use a hotkey you've set up for your terminal if available
+                        try:
+                            pyautogui.hotkey('ctrl', 'alt', 't') # Common shortcut for terminal in many Linux distros
+                            time.sleep(1) # Give terminal time to open
+                            pyautogui.write(target_command)
+                            pyautogui.press('enter')
+                            response_message = f"Linux terminal opened (via Ctrl+Alt+T) and executed: '{target_command}'."
+                        except Exception:
+                            # Fallback: Try to run command directly in background if terminal launch fails
+                            # Note: This won't show output in a new terminal, just executes.
+                            import subprocess
+                            subprocess.Popen(target_command, shell=True) # Executes in background, no new terminal
+                            response_message = f"Linux command executed directly: '{target_command}' (no new terminal window)."
+                    else:
+                        response_message = {"status": "error", "message": "Open terminal command requires a 'command' argument."}
+
                 else:
                     response_message = {"status": "error", "message": f"Unknown command: '{command}'."}
 
